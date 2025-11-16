@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💊 Medicine Price Comparator - Find Best Prices in India</title>
+    <meta name="description" content="Compare medicine prices across 1mg, PharmEasy, NetMeds, Apollo Pharmacy and Blinkit instantly">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #0284c7;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #64748b;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .search-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #medicineInput {
+            flex: 1;
+            min-width: 250px;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        #medicineInput:focus {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        }
+
+        .search-btn {
+            padding: 15px 35px;
+            font-size: 16px;
+            font-weight: 600;
+            background: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover:not(:disabled) {
+            background: #0369a1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #0284c7;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #0284c7;
+            transition: all 0.3s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card.unavailable {
+            opacity: 0.7;
+            border-left-color: #94a3b8;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .pharmacy-name {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-icon {
+            font-size: 20px;
+        }
+
+        .price {
+            font-size: 2em;
+            font-weight: 700;
+            color: #0284c7;
+            margin: 15px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 5px 0;
+        }
+
+        .badge-available {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-unavailable {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .badge-best {
+            background: #22c55e;
+            color: white;
+            margin-left: 8px;
+        }
+
+        .notes {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #475569;
+            margin: 10px 0;
+        }
+
+        .buy-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .buy-btn-available {
+            background: #0284c7;
+            color: white;
+        }
+
+        .buy-btn-available:hover {
+            background: #0369a1;
+        }
+
+        .buy-btn-unavailable {
+            background: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .pharmacies-list {
+            text-align: center;
+            margin-top: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .pharmacies-list h2 {
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+
+        .pharmacy-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .pharmacy-tag {
+            background: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #dc2626;
+        }
+
+        .result-header {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .result-header h2 {
+            font-size: 1.8em;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+
+        .result-header .medicine-name {
+            color: #0284c7;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            #medicineInput, .search-btn {
+                width: 100%;
+            }
+
+            .results {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-icon">💊</div>
+            <h1>Medicine Price Comparator</h1>
+            <p class="subtitle">
+                Compare medicine prices across top Indian pharmacies instantly. 
+                Find the best deals and save money on your prescriptions.
+            </p>
+        </div>
+
+        <div class="search-section">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="medicineInput" 
+                    placeholder="Enter medicine name (e.g., Paracetamol, Crocin, Dolo 650)"
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button class="search-btn" onclick="searchMedicine()">
+                    <span>🔍</span>
+                    <span>Search Prices</span>
+                </button>
+            </div>
+            <div id="loadingText" class="loading" style="display: none;">
+                <span class="spinner"></span> Searching across multiple pharmacies...
+            </div>
+        </div>
+
+        <div id="resultSection" style="display: none;">
+            <div class="result-header">
+                <h2>Results for: <span class="medicine-name" id="medicineName"></span></h2>
+                <p style="color: #64748b;">Showing prices from 5 pharmacies</p>
+            </div>
+            <div id="results" class="results"></div>
+        </div>
+
+        <div class="pharmacies-list">
+            <h2>We compare prices from</h2>
+            <div class="pharmacy-tags">
+                <div class="pharmacy-tag">1mg</div>
+                <div class="pharmacy-tag">PharmEasy</div>
+                <div class="pharmacy-tag">NetMeds</div>
+                <div class="pharmacy-tag">Apollo Pharmacy</div>
+                <div class="pharmacy-tag">Blinkit</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ IMPORTANT: Replace 'YOUR_OPENAI_API_KEY' with your actual OpenAI API key
+        // Get your API key from: https://platform.openai.com/api-keys
+        const OPENAI_API_KEY = 'YOUR_OPENAI_API_KEY';
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                searchMedicine();
+            }
+        }
+
+        async function searchMedicine() {
+            const input = document.getElementById('medicineInput');
+            const medicineName = input.value.trim();
+            const loadingText = document.getElementById('loadingText');
+            const resultSection = document.getElementById('resultSection');
+            const resultsDiv = document.getElementById('results');
+
+            if (!medicineName) {
+                alert('Please enter a medicine name');
+                return;
+            }
+
+            if (OPENAI_API_KEY === 'YOUR_OPENAI_API_KEY') {
+                resultsDiv.innerHTML = `
+                    <div class="error-message">
+                        <strong>⚠️ API Key Required</strong><br>
+                        Please replace 'YOUR_OPENAI_API_KEY' in the code with your actual OpenAI API key.
+                        Get your key from: <a href="https://platform.openai.com/api-keys" target="_blank">https://platform.openai.com/api-keys</a>
+                    </div>
+                `;
+                resultSection.style.display = 'block';
+                return;
+            }
+
+            // Show loading
+            loadingText.style.display = 'block';
+            resultSection.style.display = 'none';
+            resultsDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are a medicine price checker for Indian pharmacies. Always return valid JSON with realistic prices in rupees.'
+                            },
+                            {
+                                role: 'user',
+                                content: `Find prices for ${medicineName} across Indian pharmacies. Return ONLY valid JSON in this format:
+{
+  "medicine": "${medicineName}",
+  "websites": {
+    "1mg": {"price": "₹XX", "available": true, "link": "https://www.1mg.com/", "notes": ""},
+    "PharmEasy": {"price": "₹XX", "available": true, "link": "https://pharmeasy.in/", "notes": ""},
+    "NetMeds": {"price": "₹XX", "available": true, "link": "https://www.netmeds.com/", "notes": ""},
+    "Apollo": {"price": "₹XX", "available": true, "link": "https://www.apollopharmacy.in/", "notes": ""},
+    "Blinkit": {"price": "₹XX", "available": true, "link": "https://blinkit.com/", "notes": ""}
+  }
+}`
+                            }
+                        ],
+                        max_tokens: 1500,
+                        temperature: 0.7
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const content = data.choices[0].message.content;
+                
+                // Parse JSON from response
+                const jsonMatch = content.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) {
+                    throw new Error('Invalid response format');
+                }
+                
+                const medicineData = JSON.parse(jsonMatch[0]);
+                displayResults(medicineData);
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="error-message">
+                        <strong>❌ Search Failed</strong><br>
+                        ${error.message || 'Unable to search. Please check your API key and try again.'}
+                    </div>
+                `;
+                resultSection.style.display = 'block';
+            } finally {
+                loadingText.style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const resultSection = document.getElementById('resultSection');
+            const resultsDiv = document.getElementById('results');
+            const medicineNameSpan = document.getElementById('medicineName');
+
+            medicineNameSpan.textContent = data.medicine;
+
+            // Find lowest price
+            const prices = Object.entries(data.websites)
+                .filter(([_, info]) => info.available && info.price !== 'N/A')
+                .map(([_, info]) => parseFloat(info.price.replace(/[₹,]/g, '')));
+            
+            const lowestPrice = prices.length > 0 ? Math.min(...prices) : null;
+
+            // Generate cards
+            let html = '';
+            for (const [name, info] of Object.entries(data.websites)) {
+                const price = parseFloat(info.price.replace(/[₹,]/g, ''));
+                const isBestPrice = lowestPrice && price === lowestPrice && info.available;
+                const available = info.available;
+
+                html += `
+                    <div class="result-card ${available ? '' : 'unavailable'}">
+                        <div class="card-header">
+                            <div class="pharmacy-name">
+                                <span>${getPharmacyIcon(name)}</span>
+                                ${name}
+                            </div>
+                            <div class="status-icon">
+                                ${available ? '✅' : '❌'}
+                            </div>
+                        </div>
+                        
+                        <div class="price">
+                            ${info.price}
+                            ${isBestPrice ? '<span class="badge badge-best">Best Price</span>' : ''}
+                        </div>
+
+                        <span class="badge ${available ? 'badge-available' : 'badge-unavailable'}">
+                            ${available ? 'In Stock' : 'Out of Stock'}
+                        </span>
+
+                        ${info.notes ? `<div class="notes">ℹ️ ${info.notes}</div>` : ''}
+
+                        ${available ? `
+                            <a href="${info.link}" target="_blank" class="buy-btn buy-btn-available">
+                                <span>Buy Now</span>
+                                <span>🔗</span>
+                            </a>
+                        ` : `
+                            <button class="buy-btn buy-btn-unavailable" disabled>
+                                Not Available
+                            </button>
+                        `}
+                    </div>
+                `;
+            }
+
+            resultsDiv.innerHTML = html;
+            resultSection.style.display = 'block';
+        }
+
+        function getPharmacyIcon(name) {
+            const icons = {
+                '1mg': '🔴',
+                'PharmEasy': '💚',
+                'NetMeds': '🔵',
+                'Apollo': '🟢',
+                'Blinkit': '🟡'
+            };
+            return icons[name] || '💊';
+        }
+    </script>
+</body>
+</html>
